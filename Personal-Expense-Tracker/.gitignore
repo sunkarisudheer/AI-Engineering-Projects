@@ -4,3 +4,6 @@
 data/expenses.json
 
 _pycache_
+
+
+*.pyc

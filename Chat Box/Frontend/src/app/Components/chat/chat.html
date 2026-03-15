@@ -1,0 +1,85 @@
+<div class="chat-page">
+  <div class="chat-container">
+    <div class="chat-header">
+      <div class="header-left">
+        <div class="bot-avatar">G</div>
+        <div class="header-text">
+          <h1>Gemini Chat Assistant</h1>
+          <p>Ask anything and get instant responses</p>
+        </div>
+      </div>
+
+      <div class="status-badge">Online</div>
+    </div>
+
+    <div class="chat-box">
+      @if (messages.length === 0) {
+        <div class="welcome-card">
+          <h2>Welcome 👋</h2>
+          <p>
+            Start chatting with your Gemini-powered assistant.
+            Ask a question, get ideas, summarize text, or just test the UI.
+          </p>
+        </div>
+      }
+
+      @for (msg of messages; track $index) {
+        <div class="message-row" [class.user]="msg.sender === 'user'" [class.bot]="msg.sender === 'bot'">
+          <div class="message" [class.user]="msg.sender === 'user'" [class.bot]="msg.sender === 'bot'">
+            {{ msg.text }}
+          </div>
+        </div>
+      }
+      @if (isLoading) {
+        <div class="message-row bot">
+          <div class="message bot">Typing...</div>
+        </div>
+      }
+      
+    </div>
+
+    <div class="chat-input-area">
+      <div class="input-wrapper">
+        <input
+          [(ngModel)]="userInput"
+          (keyup.enter)="sendMessage()"
+          placeholder="Type your message here..."
+        />
+        <button class="send-btn" (click)="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+<!-- <div class="chat-container">
+  <h1>Gemini Chat</h1>
+
+  <div class="chat-box">
+    <div
+      *ngFor="let msg of messages"
+      class="message"
+      [ngClass]="msg.sender"
+    >
+      {{ msg.text }}
+    </div>
+  </div>
+
+  <div class="input-area">
+    <input
+      [(ngModel)]="userInput"
+      (keyup.enter)="sendMessage()"
+      placeholder="Type your message..."
+    />
+    <button (click)="sendMessage()">Send</button>
+  </div>
+</div> -->
