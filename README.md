@@ -46,6 +46,50 @@ A project that demonstrates how **tokenization works in Natural Language Process
 * Python
 * HuggingFace Transformers
 
+
+## 3️⃣ Prompt Engineering Playground
+
+A hands-on project demonstrating different prompting techniques used to control and guide Large Language Models (LLMs) effectively.
+
+**Features**
+* Zero-shot, One-shot, Few-shot prompting examples
+* Chain-of-Thought (CoT) reasoning prompts
+* Multi-step prompting workflows
+* JSON structured prompting for reliable outputs
+* Guardrails to control unsafe or incorrect responses
+* Bias & fairness handling in prompts
+* LLM response controlling techniques
+
+**Concepts Covered**
+* Prompt Design Strategies
+* LLM Behavior Control
+* Output Structuring (JSON mode)
+* Hallucination Reduction
+* Responsible AI (Bias & Guardrails)
+
+**Implementation**
+* Python scripts with API integration
+**Uses API keys to interact with LLMs (e.g., Gemini / OpenAI-compatible APIs)
+
+
+## 4️⃣ AI Chatbox (Angular + Python Backend)
+A full-stack AI chatbot application built using Angular (frontend) and Python backend, integrated with a Generative AI model (Gemini API).
+
+**Features**
+* Real-time chat interface
+* User-friendly UI with message streaming
+* Backend API handling AI responses
+* Loading/typing indicator support
+* Error handling and response display
+* Modular frontend and backend architecture
+
+**Tech Stack**
+* Frontend: Angular
+* Backend: Python (Flask / FastAPI)
+* AI Model: Gemini API
+* REST API Communication
+
+
 ---
 ## 🎯 Purpose of This Repository
 * Practice **AI engineering concepts through projects**
