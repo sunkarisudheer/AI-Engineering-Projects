@@ -1,0 +1,4 @@
+{
+  "subject": "Payment failed during checkout",
+  "description": "Customer reported that money was deducted from the bank account but the order was not placed successfully."
+}

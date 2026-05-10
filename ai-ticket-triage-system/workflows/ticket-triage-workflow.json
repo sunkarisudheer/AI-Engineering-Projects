@@ -1,0 +1,287 @@
+{
+  "name": "AI Ticket Triage",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ticket",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -1024,
+        16
+      ],
+      "id": "4eb924de-9643-4fb8-862c-a6525c9f9515",
+      "name": "Webhook1",
+      "webhookId": "7a040eef-ba82-42e3-aa21-309483310514"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key={APIKEY}",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"contents\": [\n    {\n      \"parts\": [\n        {\n          \"text\": \"You are a strict support ticket classifier.\\n\\nReturn ONLY JSON:\\n{\\n  \\\"category\\\": \\\"billing | bug | feature | other\\\",\\n  \\\"priority\\\": \\\"low | medium | high\\\",\\n  \\\"summary\\\": \\\"short summary\\\"\\n}\\n\\nTicket:\\nSubject: {{$json.body.subject}}\\nDescription: {{$json.body.description}}\"\n        }\n      ]\n    }\n  ]\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        -864,
+        128
+      ],
+      "id": "904182f7-8986-421b-9c22-ec4d4748cd56",
+      "name": "HTTP Request1",
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        32,
+        80
+      ],
+      "id": "45305582-2a10-4712-90a3-2b155e93f476",
+      "name": "Respond to Webhook1"
+    },
+    {
+      "parameters": {
+        "jsCode": "const items = $input.all();\n\nconst input = items[0].json; // webhook\nconst ai = items[1].json;    // gemini\n\nconst raw = ai.candidates?.[0]?.content?.parts?.[0]?.text || \"\";\n\nconst cleaned = raw.replace(/```json|```/g, \"\").trim();\n\nlet parsed;\n\ntry {\n  parsed = JSON.parse(cleaned);\n} catch (e) {\n  parsed = {\n    category: \"other\",\n    priority: \"low\",\n    summary: cleaned.slice(0, 100)\n  };\n}\n\nreturn [\n  {\n    json: {\n      subject: input.body?.subject,\n      description: input.body?.description,\n      ...parsed\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -560,
+        32
+      ],
+      "id": "c1ad72cd-1ec6-4150-9276-8d5b087334d2",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        -720,
+        32
+      ],
+      "id": "f6a2bfea-03e0-4fe1-b3e0-9647b664d88b",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "97742138-d5ad-44a8-8590-f49c8d887309",
+              "leftValue": "={{$json.priority}}",
+              "rightValue": "high",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -400,
+        32
+      ],
+      "id": "23adc645-7ea1-4775-ba3a-b4c01a56da43",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"status\": \"urgent\",\n  \"message\": \"High priority ticket detected\",\n  \"data\": {{$json}}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        -16
+      ],
+      "id": "b775a3f9-1835-4a6d-9077-6047654ebdf4",
+      "name": "Edit Fields2"
+    },
+    {
+      "parameters": {
+        "mode": "raw",
+        "jsonOutput": "={\n  \"status\": \"normal\",\n  \"message\": \"Ticket logged\",\n  \"data\": {{$json}}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -176,
+        144
+      ],
+      "id": "155f8890-4f96-4fbc-95e4-fb9d23f26502",
+      "name": "Edit Fields3"
+    },
+    {
+      "parameters": {
+        "sendTo": "sudheersunkari199144@gmail.com",
+        "subject": "={{ `Ticket Alert | ${$json.data.priority.toUpperCase()} | ${$json.data.subject}` }}",
+        "message": "=<div style=\"font-family: Arial; line-height: 1.6;\">\n  <h2>🚨 HIGH PRIORITY TICKET ALERT</h2>\n\n  <hr/>\n\n  <p><b>Ticket ID:</b> TCKT-{{Date.now().toString().slice(-6)}}</p>\n  <p><b>Time:</b> {{new Date().toLocaleString()}}</p>\n\n  <p><b>Subject:</b><br/>{{$json.data.subject}}</p>\n\n  <p><b>Description:</b><br/>{{$json.data.description}}</p>\n\n  <p><b>Category:</b> {{$json.data.category}}</p>\n  <p><b> Priority:</b> {{$json.data.priority}}</p>\n\n  <p><b> Summary:</b><br/>{{$json.data.summary}}</p>\n\n  <hr/>\n\n  <p style=\"color:red;\"><b>Action Required:</b> Immediate attention needed.</p>\n</div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        80,
+        -96
+      ],
+      "id": "d3ea2edb-3a77-45ae-9211-a5e1c317c5e1",
+      "name": "Send a message",
+      "webhookId": "ec9e89c7-8801-4f1b-b0c7-9bed65f0610c",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "GmailID",
+          "name": "Gmail account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "HTTP Request1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request1": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Respond to Webhook1": {
+      "main": [
+        []
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Edit Fields3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields2": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields3": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b250dc2f-71f0-43b7-b2a2-5be13f53f248",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "8be3156a4f7436521b031de10c86321d9b393a9600355559c09dd262f5b64cdd"
+  },
+  "id": "3PxlDzCOBrwF88LV",
+  "tags": []
+}
